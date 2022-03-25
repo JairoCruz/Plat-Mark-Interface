@@ -14,43 +14,75 @@ import { useCallback, useEffect, useState } from "react";
 //import useTruncatedAddress from "../../../hooks/useTruncatedAddress";
 
 const WalletData = () => {
-  const [balance, setBalance] = useState(0);
-  const { active, activate, deactivate, account, error, library } =
-    useWeb3React();
 
-  const isUnsupportedChain = error instanceof UnsupportedChainIdError;
+    const [balance, setBalance] = useState(0);
 
-  const connect = useCallback(() => {
-    activate(connector);
-    localStorage.setItem("previouslyConnected", "true");
-  }, [activate]);
+    const { active, activate, deactivate, account, error, library } = useWeb3React();
 
-  const disconnect = () => {
-    deactivate();
-    localStorage.removeItem("previouslyConnected");
-  };
+    const isUnsupportedChain = error instanceof UnsupportedChainIdError
 
-  const getBalance = useCallback(async () => {
-    const toSet = await library.eth.getBalance(account);
-    setBalance((toSet / 1e18).toFixed(2));
-  }, [library?.eth, account]);
+    const connect = useCallback(() => {
+        activate(connector);
+        localStorage.setItem("previouslyConnected", "true");
+      }
+    );
 
-  useEffect(() => {
-    if (active) getBalance();
-  }, [active, getBalance]);
+    const disconnect = () => {
+      deactivate();
+      localStorage.removeItem("previouslyConnected");
+    }
 
-  useEffect(() => {
-    if (localStorage.getItem("previouslyConnected") === "true") connect();
-  }, [connect]);
+    const getBalance = useCallback(async() => {
+      const toSet = await library.eth.getBalance(account);
+      setBalance((toSet / 1e18).toFixed(2));
+    }, [library?.eth, account]);
 
-  const truncatedAddress = useTruncatedAddress(account);
+    useEffect(()=> {
+      if(active) getBalance()
+    }, [active, getBalance]);
+
+    useEffect(() => {
+      if(localStorage.getItem('previouslyConnected') === "true") connect();
+    }, [connect]);
+
+
+  // const [balance, setBalance] = useState(0);
+  // const { active, activate, deactivate, account, error, library } =
+  //   useWeb3React();
+
+  // const isUnsupportedChain = error instanceof UnsupportedChainIdError;
+
+  // const connect = useCallback(() => {
+  //   activate(connector);
+  //   localStorage.setItem("previouslyConnected", "true");
+  // }, [activate]);
+
+  // const disconnect = () => {
+  //   deactivate();
+  //   localStorage.removeItem("previouslyConnected");
+  // };
+
+  // const getBalance = useCallback(async () => {
+  //   const toSet = await library.eth.getBalance(account);
+  //   setBalance((toSet / 1e18).toFixed(2));
+  // }, [library?.eth, account]);
+
+  // useEffect(() => {
+  //   if (active) getBalance();
+  // }, [active, getBalance]);
+
+  // useEffect(() => {
+  //   if (localStorage.getItem("previouslyConnected") === "true") connect();
+  // }, [connect]);
+
+ // const truncatedAddress = useTruncatedAddress(account);
 
   return (
     <Flex alignItems={"center"}>
       {active ? (
         <Tag colorScheme="green" borderRadius="full">
           <TagLabel>
-            <Link to="/punks">{truncatedAddress}</Link>
+            <Link to="/punks">{account /*truncatedAddress*/}</Link>
           </TagLabel>
           <Badge
             d={{
