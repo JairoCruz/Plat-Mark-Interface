@@ -6,6 +6,7 @@ import {
     Button,
     Image,
     Badge,
+    useToast,
   } from "@chakra-ui/react";
   import { Link } from "react-router-dom";
   import { useWeb3React } from "@web3-react/core";
@@ -13,9 +14,11 @@ import {
   import { useCallback, useEffect, useState } from "react";
   
   const Home = () => {
+    const [isMinting, setIsMinting] = useState(false);
     const [imageSrc, setImageSrc] = useState("");
     const { active, account } = useWeb3React();
     const platMark = usePlatMark();
+    const toast = useToast();
   
 
     const getPlatMarkData = useCallback(async () => {
@@ -31,6 +34,41 @@ import {
     useEffect(() => {
         getPlatMarkData();
     }, [getPlatMarkData]);
+
+
+    const mint = () => {
+      setIsMinting(true);
+
+
+      platMark.methods.mint().send({
+        from: account,
+      })
+      .on("transactionHash", (txtHash) => {
+        toast({
+          title: 'Transaccion enviada',
+          description: txtHash,
+          status: 'info'
+        });
+      })
+      .on("receipt", () => {
+        setIsMinting(false);
+        toast({
+          title: 'Transaccion confirmada',
+          description: "Sin ningun problema",
+          status: 'success'
+        });
+      })
+      .on("error", (error) => {
+        setIsMinting(false);
+        toast({
+          title: 'Transaccion fallida',
+          description: error.message,
+          status: 'error'
+        });
+      });
+
+      
+    }
 
     // const getPlatziPunksData = useCallback(async () => {
     //   if (platziPunks) {
@@ -104,6 +142,8 @@ import {
               bg={"green.400"}
               _hover={{ bg: "green.500" }}
               disabled={!platMark}
+              onClick={mint}
+              isLoading={isMinting}
             >
               Obtén tu punk
             </Button>
