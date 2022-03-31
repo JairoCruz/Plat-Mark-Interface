@@ -110,4 +110,40 @@ const usePlatMarksData = () => {
 };
 
 
-export { usePlatMarksData };
+// Get one Punk
+const usePlatMarkDataOne = (tokenId = null) => {
+    
+    const [punk, setPunk] = useState({});
+
+    const [loading, setLoading] = useState(true);
+
+    const platPunks = usePlatMark();
+
+    const update = useCallback(async () => {
+
+        if(platPunks && tokenId != null) {
+            setLoading(true);
+
+            const toSet = await getPunkData({ tokenId, platPunks });
+
+            setPunk(toSet);
+
+            setLoading(false);
+        }
+
+    }, [platPunks, tokenId]);
+
+    useEffect(() => {
+        update();
+    }, [update]);
+
+    return {
+        loading,
+        punk,
+        update,
+    }
+
+};
+
+
+export { usePlatMarksData, usePlatMarkDataOne };
