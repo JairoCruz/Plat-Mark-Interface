@@ -1,9 +1,43 @@
-const getPunkData = async({ platPunks, tokenId }) => {
-    const [tokenURI, dna, owner, accesoriesType] = await Promise.all([
-        platPunks.method.tokenURI(tokenId).call(),
-        platPunks.method.tokenDNA(tokenId).call(),
-        platPunks.method.ownerOf(tokenId).call(),
-        platPunks.method.getAccessoriesType(tokenId).call(),
+import { useCallback, useEffect, useState } from 'react';
+import usePlatMark from '../usePlatMark';
+
+
+const getPunkData = async ({ platPunks, tokenId }) => {
+    const [
+        tokenURI,
+        dna,
+        owner,
+        accesoriesType,
+        clotheColor,
+        clotheType,
+        eyeType,
+        eyeBrowType,
+        facialHairColor,
+        facialHairType,
+        hairColor,
+        hatColor,
+        graphicType,
+        mouthType,
+        skinColor,
+        topType,
+    ] = await Promise.all([
+        platPunks.methods.tokenURI(tokenId).call(),
+        platPunks.methods.tokenDNA(tokenId).call(),
+        platPunks.methods.ownerOf(tokenId).call(),
+        platPunks.methods.getAccesoriesType(tokenId).call(),
+        platPunks.methods.getAccesoriesType(tokenId).call(),
+        platPunks.methods.getClotheColor(tokenId).call(),
+        platPunks.methods.getClotheType(tokenId).call(),
+        platPunks.methods.getEyeType(tokenId).call(),
+        platPunks.methods.getEyeBrowType(tokenId).call(),
+        platPunks.methods.getFacialHairColor(tokenId).call(),
+        platPunks.methods.getFacialHairType(tokenId).call(),
+        platPunks.methods.getHairColor(tokenId).call(),
+        platPunks.methods.getHatColor(tokenId).call(),
+        platPunks.methods.getGraphicType(tokenId).call(),
+        platPunks.methods.getMouthType(tokenId).call(),
+        platPunks.methods.getSkinColor(tokenId).call(),
+        platPunks.methods.getTopType(tokenId).call(),
     ]);
 
     const responseMetadata = await fetch(tokenURI);
@@ -13,6 +47,18 @@ const getPunkData = async({ platPunks, tokenId }) => {
         tokenId,
         attributes: {
             accesoriesType,
+            clotheColor,
+            clotheType,
+            eyeType,
+            eyeBrowType,
+            facialHairColor,
+            facialHairType,
+            hairColor,
+            hatColor,
+            graphicType,
+            mouthType,
+            skinColor,
+            topType,
         },
         tokenURI,
         dna,
@@ -24,4 +70,44 @@ const getPunkData = async({ platPunks, tokenId }) => {
 // Only get all image punks.
 const usePlatMarksData = () => {
 
-}
+    const [punks, setPunks] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const platPunks = usePlatMark();
+
+    const update = useCallback(async () => {
+
+        if(platPunks) {
+            setLoading(true);
+
+            let tokenIds;
+
+            const totalSupply = await platPunks.methods.totalSupply().call();
+
+            tokenIds = new Array(Number(totalSupply)).fill().map((_, index) => index);
+
+            const punksPromise = tokenIds.map((tokenId) => getPunkData({ tokenId, platPunks }));
+
+            const punks = await Promise.all(punksPromise);
+
+            setPunks(punks);
+
+
+            setLoading(false);
+        }
+
+    }, [platPunks]);
+
+    useEffect(()=>{
+        update();
+    },[update]);
+
+    return {
+        loading,
+        punks,
+        update,
+    };
+
+};
+
+
+export { usePlatMarksData };
