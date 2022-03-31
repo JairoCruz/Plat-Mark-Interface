@@ -10,6 +10,7 @@ import {
     Tbody,
     Button,
     Tag,
+    useToast
   } from "@chakra-ui/react";
   import { useWeb3React } from "@web3-react/core";
   import RequestAccess from "../../components/request-access";
@@ -17,11 +18,63 @@ import {
   import { useParams } from "react-router-dom";
   import Loading from "../../components/loading";
   import { usePlatMarkDataOne } from "../../hooks/usePlatMarkData";
+  import { useState } from 'react';
+  import usePlatMark from "../../hooks/usePlatMark";
   
     const Punk = () => {
-    const { active, account } = useWeb3React();
+    const { active, account, library } = useWeb3React();
     const { tokenId } = useParams();
-    const { loading, punk } = usePlatMarkDataOne(tokenId);
+    const { loading, punk, update } = usePlatMarkDataOne(tokenId);
+    const platMark = usePlatMark();
+    const toast = useToast();
+    const [ transfering, setTransfering ] = useState(false);
+
+    const transfer = () => {
+        setTransfering(true);
+
+        // This secction can be update with major design.
+        const address = prompt("Ingresa la direccion: ");
+
+        const isAddress = library.utils.isAddress(address);
+
+        if(!isAddress) {
+            toast({
+                title: "Direccion invalida",
+                description: "La direccion no es una direccion de Ethereum",
+                status: "error",
+            });
+            setTransfering(false);
+        } else {
+            platMark.methods.safeTransferFrom(punk.owner, address, punk.tokenId)
+            .send({
+                from: account,
+            })
+            .on('error', (error) => {
+                setTransfering(false);
+                toast({
+                    title: 'Transaccion fallida',
+                    description: error.message,
+                    status: 'error'
+                  });
+            })
+            .on('transactionHash', (txtHash) => {
+                toast({
+                    title: "Transaccion enviada",
+                    description: txtHash,
+                    status: "info",
+                });
+            })
+            .on('receipt', () => {
+                setTransfering(false)
+                toast({
+                    title: 'Transaccion confirmada',
+                    description: `El punk ahora pertenece a ${address}`,
+                    status: 'success',
+                });
+                update();
+            });
+        }
+    }
   
     if (!active) return <RequestAccess />;
   
@@ -42,7 +95,10 @@ import {
             name={punk.name}
             image={punk.image}
           />
-          <Button disabled={account !== punk.owner} colorScheme="green">
+          <Button
+            onClick={transfer}
+            disabled={account !== punk.owner} colorScheme="green"
+            isLoading={transfering}>
             {account !== punk.owner ? "No eres el dueño" : "Transferir"}
           </Button>
         </Stack>
