@@ -24,8 +24,7 @@ const WalletData = () => {
     const connect = useCallback(() => {
         activate(connector);
         localStorage.setItem("previouslyConnected", "true");
-      }
-    );
+      }, [activate]);
 
     const disconnect = () => {
       deactivate();
