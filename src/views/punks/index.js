@@ -1,12 +1,27 @@
 import { useWeb3React } from '@web3-react/core';
-import { Grid } from '@chakra-ui/react';
+import { 
+    Grid,
+    InputGroup,
+    InputLeftElement,
+    Input,
+    InputRightElement,
+    Button,
+    FormHelperText,
+    FormControl, 
+} from '@chakra-ui/react';
+import { SearchIcon } from '@chakra-ui/icons';
 import { Link } from 'react-router-dom';
 import PunkCard from '../../components/punk-card';
 import Loading from '../../components/loading';
 import RequestAccess from '../../components/request-access';
 import { usePlatMarksData } from '../../hooks/usePlatMarkData';
+import { useState } from 'react';
 
 const Punks = () => {
+
+    const [address, setAddress] = useState('');
+
+    const [submitted, setSubmitted] = useState(false);
 
     const { active } = useWeb3React();
 
@@ -16,6 +31,21 @@ const Punks = () => {
 
     return (
         <>
+
+        <form>
+            <FormControl>
+                <InputGroup mb={3}>
+                    <InputLeftElement pointerEvents="none" children={<SearchIcon color="gray.300" />} />
+                    <Input isInvalid={false} value={address ?? ''} onChange={()=>{}} placeholder="Buscar por direccion" />
+                    <InputRightElement width="5.5rem">
+                        <Button type='submit' h="1.75rem" size="sm" >
+                            Buscar
+                        </Button>
+                    </InputRightElement>
+                </InputGroup>
+            </FormControl>
+        </form>
+
         {
             loading ? (<Loading/>)
             : (

@@ -1,3 +1,4 @@
+import { useWeb3React } from "@web3-react/core";
 import { useCallback, useEffect, useState } from 'react';
 import usePlatMark from '../usePlatMark';
 
@@ -68,9 +69,10 @@ const getPunkData = async ({ platPunks, tokenId }) => {
 };
 
 // Only get all image punks.
-const usePlatMarksData = () => {
+const usePlatMarksData = ({ owner = null } = { }) => {
 
     const [punks, setPunks] = useState([]);
+    const { library } = useWeb3React();
     const [loading, setLoading] = useState(true);
     const platPunks = usePlatMark();
 
@@ -81,9 +83,21 @@ const usePlatMarksData = () => {
 
             let tokenIds;
 
-            const totalSupply = await platPunks.methods.totalSupply().call();
+            if(!library.utils.isAddress(owner)) {
+                const totalSupply = await platPunks.methods.totalSupply().call();
 
-            tokenIds = new Array(Number(totalSupply)).fill().map((_, index) => index);
+                tokenIds = new Array(Number(totalSupply)).fill().map((_, index) => index);
+            } else {
+                const balanceOf = await platPunks.methods.balanceOf(owner);
+
+                const tokenIdsOfOwner = new Array(Number(balanceOf))
+                .fill()
+                .map((_, index) => platPunks.methods.tokenOfoWnerByIndex(owner, index));
+
+                tokenIds = await Promise.all(tokenIdsOfOwner);
+            }
+
+           
 
             const punksPromise = tokenIds.map((tokenId) => getPunkData({ tokenId, platPunks }));
 
@@ -95,7 +109,7 @@ const usePlatMarksData = () => {
             setLoading(false);
         }
 
-    }, [platPunks]);
+    }, [platPunks, owner, library?.utils]);
 
     useEffect(()=>{
         update();
