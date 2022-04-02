@@ -16,33 +16,72 @@ import Loading from '../../components/loading';
 import RequestAccess from '../../components/request-access';
 import { usePlatMarksData } from '../../hooks/usePlatMarkData';
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Punks = () => {
 
-    const [address, setAddress] = useState('');
+    const { search } = useLocation();
 
-    const [submitted, setSubmitted] = useState(false);
+    const [address, setAddress] = useState(
+        new URLSearchParams(search).get("address")
+    );
 
-    const { active } = useWeb3React();
+    const [submitted, setSubmitted] = useState(true);
 
-    const {punks, loading } = usePlatMarksData();
+    const [validAddress, setValidAddress] = useState(true);
+
+    const navigate = useNavigate();
+
+    const { active, library } = useWeb3React();
+
+    const {punks, loading } = usePlatMarksData({
+        owner: submitted && validAddress ? address : null
+    });
+
+    const handleAddressChange = ({ target: { value }}) => {
+        setAddress(value);
+        setSubmitted(false);
+        setValidAddress(false);
+    };
+
+
+    const submit = (event) => {
+
+        event.preventDefault();
+
+        if(address){
+            const isValid = library.utils.isAddress(address);
+            setValidAddress(isValid);
+            setSubmitted(true);
+            if (isValid) navigate(`/punks?address=${address}`);
+        } else {
+            navigate("/punks");
+        }
+
+    };
 
     if (!active) return <RequestAccess />;
 
     return (
         <>
 
-        <form>
+        <form onSubmit={submit}>
             <FormControl>
                 <InputGroup mb={3}>
                     <InputLeftElement pointerEvents="none" children={<SearchIcon color="gray.300" />} />
-                    <Input isInvalid={false} value={address ?? ''} onChange={()=>{}} placeholder="Buscar por direccion" />
+                    <Input isInvalid={false} value={address ?? ''} onChange={handleAddressChange} placeholder="Buscar por direccion" />
                     <InputRightElement width="5.5rem">
                         <Button type='submit' h="1.75rem" size="sm" >
                             Buscar
                         </Button>
                     </InputRightElement>
                 </InputGroup>
+                { submitted && !validAddress && (
+                    <FormHelperText>
+                        Direccion invalida
+                    </FormHelperText>
+                ) 
+                }
             </FormControl>
         </form>
 

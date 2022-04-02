@@ -88,11 +88,12 @@ const usePlatMarksData = ({ owner = null } = { }) => {
 
                 tokenIds = new Array(Number(totalSupply)).fill().map((_, index) => index);
             } else {
-                const balanceOf = await platPunks.methods.balanceOf(owner);
+                const balanceOf = await platPunks.methods.balanceOf(owner).call();
 
                 const tokenIdsOfOwner = new Array(Number(balanceOf))
                 .fill()
-                .map((_, index) => platPunks.methods.tokenOfoWnerByIndex(owner, index));
+                .map((_, index) => 
+                platPunks.methods.tokenOfOwnerByIndex(owner, index).call());
 
                 tokenIds = await Promise.all(tokenIdsOfOwner);
             }
